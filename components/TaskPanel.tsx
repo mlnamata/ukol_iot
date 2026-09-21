@@ -52,10 +52,12 @@ export default function TaskPanel({
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto rounded-lg border border-line bg-panel p-4">
       <header>
-        <h1 className="text-base font-semibold text-accent">Úloha: Evidence ZOO v terminálu</h1>
+        <h1 className="text-base font-semibold text-accent">
+          Cvičení: souborový systém Linuxu
+        </h1>
         <p className="mt-1 text-xs leading-5 text-muted">
-          Plň kroky psaním skutečných příkazů do terminálu vlevo. Splněný krok se odškrtne sám.
-          Když si nevíš rady, můžeš krok přeskočit — body za něj ale nedostaneš.
+          U každého cvičení jsou uvedené příkazy — přepiš je do terminálu vlevo. Splněné cvičení se
+          odškrtne samo. Tlačítkem „Vysvětlení" si zobrazíš, co jednotlivé příkazy dělají.
         </p>
       </header>
 
@@ -120,7 +122,7 @@ export default function TaskPanel({
                       isDone ? 'text-accent' : 'text-fg',
                     ].join(' ')}
                   >
-                    Krok {i + 1} — {task.title}{' '}
+                    Cvičení {i + 1} — {task.title}{' '}
                     <span className="font-normal text-muted">({task.points} b)</span>
                     {isSkipped && (
                       <span className="ml-2 rounded border border-line px-1.5 py-0.5 text-[10px] font-normal text-muted">
@@ -128,23 +130,41 @@ export default function TaskPanel({
                       </span>
                     )}
                   </h2>
-                  <ul className="mt-1 list-disc pl-4 text-xs leading-5 text-muted">
-                    {task.bullets.map((b) => (
-                      <li key={b}>{b}</li>
+                  <p className="mt-1 text-xs leading-5 text-muted">{task.intro}</p>
+
+                  {/* Prikazy k prepsani do terminalu */}
+                  <div className="mt-2 rounded border border-line bg-bg p-2">
+                    {task.commands.map((cmd) => (
+                      <div key={cmd} className="flex gap-2 text-xs leading-6">
+                        <span className="shrink-0 select-none text-accent">$</span>
+                        <code className="min-w-0 break-all text-fg">{cmd}</code>
+                      </div>
                     ))}
-                  </ul>
-                  {openHint === task.id && (
-                    <p className="fade-in mt-2 rounded border border-line bg-panel p-2 text-xs leading-5 text-fg">
-                      💡 {task.hint}
-                    </p>
-                  )}
-                  {isCurrent && (
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap gap-2">
                     <button
-                      onClick={() => confirmSkip(task)}
-                      className="mt-2 rounded border border-line px-2 py-1 text-[11px] text-muted hover:border-danger hover:text-danger"
+                      onClick={() => setOpenHint(openHint === task.id ? null : task.id)}
+                      className="rounded border border-line px-2 py-1 text-[11px] text-muted hover:border-accent hover:text-accent"
                     >
-                      Přeskočit krok (bez bodů)
+                      {openHint === task.id ? 'Skrýt vysvětlení' : 'Vysvětlení'}
                     </button>
+                    {isCurrent && (
+                      <button
+                        onClick={() => confirmSkip(task)}
+                        className="rounded border border-line px-2 py-1 text-[11px] text-muted hover:border-danger hover:text-danger"
+                      >
+                        Přeskočit (bez bodů)
+                      </button>
+                    )}
+                  </div>
+
+                  {openHint === task.id && (
+                    <ul className="fade-in mt-2 list-disc space-y-1 rounded border border-line bg-panel p-2 pl-6 text-[11px] leading-5 text-fg">
+                      {task.explanation.map((e) => (
+                        <li key={e}>{e}</li>
+                      ))}
+                    </ul>
                   )}
                 </div>
               </div>
@@ -155,12 +175,6 @@ export default function TaskPanel({
 
       {/* Ovladaci tlacitka */}
       <div className="mt-auto flex flex-wrap gap-2 pt-2">
-        <button
-          onClick={() => setOpenHint(openHint === current.id ? null : current.id)}
-          className="rounded border border-line px-3 py-1.5 text-xs text-fg hover:border-accent hover:text-accent"
-        >
-          Nápověda
-        </button>
         <button
           onClick={onShowTree}
           className="rounded border border-line px-3 py-1.5 text-xs text-fg hover:border-accent hover:text-accent"

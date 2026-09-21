@@ -250,10 +250,50 @@ function cmdPwd(state: FsState): ExecResult {
   return ok(state, [out(state.cwd)])
 }
 
+/** Radky vypisu jednoho adresare - kratky nebo dlouhy format. */
+function renderDir(state: FsState, node: FsDir, abs: string, all: boolean, long: boolean): OutLine[] {
+  const lines: OutLine[] = []
+  const names = listNames(node, all)
+  if (all) names.unshift('.', '..')
+
+  if (long) {
+    const parent = getNode(state.root, parentPath(abs))
+    const withDots: FsDir = {
+      type: 'dir',
+      name: node.name,
+      children: { ...node.children, '.': node, '..': isDir(parent) ? parent : node },
+    }
+    const rows = formatLsLong(all ? withDots : node, names)
+    lines.push(out(`total ${Math.max(4, names.length * 4)}`))
+    rows.forEach((r) => {
+      const cut = r.text.lastIndexOf(' ') + 1
+      lines.push({
+        segs: [
+          { text: r.text.slice(0, cut), kind: 'out' },
+          { text: r.text.slice(cut), kind: r.isDir ? 'dir' : 'out' },
+        ],
+      })
+    })
+    return lines
+  }
+
+  if (names.length > 0) {
+    const segs: Seg[] = []
+    names.forEach((name, i) => {
+      if (i > 0) segs.push({ text: '  ', kind: 'out' })
+      const isDirEntry = name === '.' || name === '..' || node.children[name]?.type === 'dir'
+      segs.push({ text: name, kind: isDirEntry ? 'dir' : 'out' })
+    })
+    lines.push({ segs })
+  }
+  return lines
+}
+
 function cmdLs(state: FsState, args: Token[]): ExecResult {
   const { flags, words } = splitFlags(args)
   const all = flags.has('a')
   const long = flags.has('l')
+  const recursive = flags.has('R')
   const targets = words.length > 0 ? words.map((w) => w.value) : ['.']
   const lines: OutLine[] = []
   let hadError = false
@@ -266,7 +306,7 @@ function cmdLs(state: FsState, args: Token[]): ExecResult {
       hadError = true
       return
     }
-    if (targets.length > 1) {
+    if (targets.length > 1 && !recursive) {
       if (idx > 0) lines.push(out(''))
       lines.push(out(`${target}:`))
     }
@@ -277,40 +317,25 @@ function cmdLs(state: FsState, args: Token[]): ExecResult {
       return
     }
 
-    const names = listNames(node, all)
-    if (all) names.unshift('.', '..')
-    if (long) {
-      const parent = getNode(state.root, parentPath(abs))
-      const withDots: FsDir = {
-        type: 'dir',
-        name: node.name,
-        children: { ...node.children, '.': node, '..': isDir(parent) ? parent : node },
+    if (recursive) {
+      // `ls -R` vypise kazdy adresar zvlast, oddelene prazdnym radkem.
+      const label = target === '.' ? '.' : displayPath(target).replace(/\/$/, '')
+      const walk = (dirNode: FsDir, dirAbs: string, dirLabel: string, first: boolean) => {
+        if (!first) lines.push(out(''))
+        lines.push(out(`${dirLabel}:`))
+        lines.push(...renderDir(state, dirNode, dirAbs, all, long))
+        for (const name of listNames(dirNode, all)) {
+          const child = dirNode.children[name]
+          if (child.type === 'dir') {
+            walk(child, `${dirAbs}/${name}`, `${dirLabel}/${name}`, false)
+          }
+        }
       }
-      const rows = formatLsLong(all ? withDots : node, names)
-      lines.push(out(`total ${Math.max(4, names.length * 4)}`))
-      rows.forEach((r) => {
-        const cut = r.text.lastIndexOf(' ') + 1
-        lines.push({
-          segs: [
-            { text: r.text.slice(0, cut), kind: 'out' },
-            { text: r.text.slice(cut), kind: r.isDir ? 'dir' : 'out' },
-          ],
-        })
-      })
-    } else {
-      const rows = names.map((name) => ({
-        text: name,
-        isDir: name === '.' || name === '..' || node.children[name]?.type === 'dir',
-      }))
-      if (rows.length > 0) {
-        const segs: Seg[] = []
-        rows.forEach((r, i) => {
-          if (i > 0) segs.push({ text: '  ', kind: 'out' })
-          segs.push({ text: r.text, kind: r.isDir ? 'dir' : 'out' })
-        })
-        lines.push({ segs })
-      }
+      walk(node, abs, label, idx === 0)
+      return
     }
+
+    lines.push(...renderDir(state, node, abs, all, long))
   })
 
   return { state, lines, error: hadError, clear: false, askReset: false }
@@ -507,7 +532,7 @@ function cmdHelp(state: FsState): ExecResult {
     'Dostupne prikazy:',
     '',
     '  pwd                      vypise aktualni adresar',
-    '  ls [-l] [-a] [cesta]     vypis obsahu adresare',
+    '  ls [-l] [-a] [-R] [cesta] vypis obsahu adresare, -R i podadresare',
     '  cd [cesta|..|~|-]        zmena adresare',
     '  mkdir [-p] adresar       vytvoreni adresare',
     '  touch soubor             vytvoreni prazdneho souboru',

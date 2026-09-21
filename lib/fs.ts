@@ -50,24 +50,11 @@ function dirOf(name: string, nodes: FsNode[]): FsDir {
 // ---------------------------------------------------------------------------
 
 export function initialRoot(): FsDir {
-  const zoo = dirOf('zoo', [
-    dirOf('savci', [
-      file('lev.txt', 'Panthera leo, 3 kusy, vybeh A'),
-      file('slon.txt', 'Loxodonta africana, 2 kusy, vybeh B'),
-      file('zebra.txt', 'Equus quagga, 5 kusu, vybeh B'),
-    ]),
-    dirOf('ptaci', [
-      file('tucnak.txt', 'Pygoscelis papua, 12 kusu, bazen'),
-      file('papousek.txt', 'Ara macao, 4 kusy, voliera'),
-    ]),
-    dirOf('plazi', [file('krokodyl.txt', 'Crocodylus niloticus, 1 kus, terarium')]),
-    file('.skryty_plan.txt', 'Plan krmeni: 7:00 savci, 9:00 ptaci'),
-    file('README.txt', 'Evidence zvirat v ZOO Plzen'),
-  ])
-
+  // Domovsky adresar je zamerne skoro prazdny - strukturu ZOO si student
+  // postavi sam v prubehu cviceni.
   const student = dirOf('student', [
-    zoo,
     dirOf('dokumenty', [file('smlouva.conf', 'typ=dodavka; krmivo=seno')]),
+    file('poznamky.txt', 'Nezapomenout objednat krmivo'),
     file('.bashrc', '# nastaveni shellu'),
   ])
 

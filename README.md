@@ -45,7 +45,7 @@ aplikace funguje dál — jen bez ukládání.
 
 ## Podporované příkazy
 
-`pwd`, `ls` (`-l`, `-a`, `-la`), `cd` (`..`, `~`, `-`, absolutní i relativní cesty),
+`pwd`, `ls` (`-l`, `-a`, `-la`, `-R`), `cd` (`..`, `~`, `-`, absolutní i relativní cesty),
 `mkdir` (`-p`), `touch`, `cat`, `echo` s `>` a `>>`, `cp` (`-r`), `mv`, `rm` (`-r`, `-f`),
 `find <cesta> -name "<vzor>"` (`*`, `?`) a `-type f|d`, `du` (`-s`, `-h`), `df -h`,
 `tree`, `clear`, `help`, `reset`.
@@ -59,13 +59,13 @@ rm: cannot remove 'savci': Is a directory
 bash: neco: command not found
 ```
 
-## Přeskočení kroku
+## Přeskočení cvičení
 
-Když si student neví rady, může aktuální krok tlačítkem **Přeskočit krok (bez bodů)**
-označit jako vyřízený a pokračovat dál. Přeskočený krok se do bodů nezapočítá a v panelu
-je označený štítkem „přeskočeno, 0 b".
+Když si student neví rady, může aktuální cvičení tlačítkem **Přeskočit (bez bodů)**
+označit jako vyřízené a pokračovat dál. Přeskočené cvičení se do bodů nezapočítá a
+v panelu je označené štítkem „přeskočeno, 0 b".
 
-Kontrola kroku ale běží dál — pokud ho student později přesto splní, přeskočení se zruší
+Kontrola ale běží dál — pokud ho student později přesto splní, přeskočení se zruší
 a body se mu připíšou.
 
 ## Klávesové zkratky v terminálu
@@ -77,47 +77,60 @@ a body se mu připíšou.
 | `Ctrl+L` | vyčištění obrazovky |
 | `Ctrl+C` | zrušení rozepsaného řádku |
 
-## Jak přidat vlastní čtvrtý krok
+## Cvičení
 
-Kroky jsou obyčejné pole v `lib/tasks.ts`. Nový krok = nový objekt v poli `TASKS`.
-Body se do celkového součtu (`TOTAL_POINTS`) sečtou samy, progress bar i počítadlo
-`X / Y` se přizpůsobí — nikde jinde nic měnit nemusíš.
+Aplikace kopíruje postup, kterým skupina látku prezentuje. Šest cvičení, každé za 5 bodů:
+
+| # | Cvičení | Příkazy |
+| --- | --- | --- |
+| 1 | Kde jsme a co tu je | `pwd`, `ls`, `ls -la` |
+| 2 | Struktura ZOO jedním příkazem | `mkdir -p zoo/pavilon_selem zoo/pavilon_ptaku`, `ls -R` |
+| 3 | Vytvoření, kopírování a přejmenování | `cd zoo/pavilon_selem`, `touch zvirata.txt`, `cp zvirata.txt ../pavilon_ptaku/`, `mv zvirata.txt lev.txt`, `ls -l` |
+| 4 | Hledání souboru | `cd ../..`, `find zoo -name "lev.txt"` |
+| 5 | Velikost složky a místo na disku | `du -sh zoo`, `df -h` |
+| 6 | Mazání souboru a složky | `rm zoo/pavilon_ptaku/zvirata.txt`, `rm -r zoo` |
+
+Příkazy jsou u každého cvičení přímo v panelu, takže se dají při prezentaci rovnou
+přepisovat. Tlačítko **Vysvětlení** rozbalí, co jednotlivé příkazy dělají.
+
+Domovský adresář je záměrně skoro prázdný — složku `zoo` si student staví sám ve
+cvičení 2, aby `find zoo -name "lev.txt"` našel právě jeden soubor.
+
+## Jak přidat vlastní cvičení
+
+Cvičení jsou obyčejné pole v `lib/tasks.ts`. Nové cvičení = nový objekt v poli `TASKS`.
+Celkový počet bodů (`TOTAL_POINTS`) se dopočítá sám, takže počítadlo i progress bar
+se přizpůsobí.
 
 ```ts
 // lib/tasks.ts
-export const TASKS: Task[] = [
-  // ...stávající tři kroky...
-  {
-    id: 'krok4',
-    title: 'Krmivo',
-    bullets: [
-      'Vytvor adresar ~/zoo/krmivo.',
-      'Do nej zkopiruj ~/dokumenty/smlouva.conf.',
-    ],
-    points: 5,
-    // Napoveda navadi na spravny prepinac, neprozradi hotovy prikaz.
-    hint: 'Adresar vytvoris pres mkdir, kopirovani souboru zvladne cp bez prepinacu.',
-    check: (root) => {
-      const krmivo = getNode(root, '/home/student/zoo/krmivo')
-      return isDir(krmivo) && isFile(krmivo.children['smlouva.conf'])
-    },
-  },
-]
+{
+  id: 'cv7',
+  title: 'Přesun celé složky',
+  intro: 'Ukážeme si, že mv umí nejen přejmenovat, ale i přesunout celou složku.',
+  commands: ['mkdir -p zoo/karantena', 'mv zoo/karantena zoo/pavilon_selem/'],
+  explanation: [
+    'mkdir vytvoří složku karantena uvnitř zoo.',
+    'mv ji přesune pod pavilon šelem — stejný příkaz jako u přejmenování, jen cíl je složka.',
+  ],
+  points: 5,
+  check: (root) => isDir(getNode(root, '/home/student/zoo/pavilon_selem/karantena')),
+}
 ```
 
-### Dva způsoby kontroly
+### Dvě cesty, jak cvičení ověřit
 
 `check(root, history)` dostane kořen souborového systému **a** historii příkazů:
 
-- **Podle stavu souborového systému** (kroky 1 a 2) — zajímá tě jen výsledek.
-  Používej `getNode`, `isDir`, `isFile` z `lib/fs.ts`.
-- **Podle historie příkazů** (krok 3) — zajímá tě, že student příkaz skutečně
-  *použil*, i když po něm nezůstane stopa (`find`, `du`, `ls`). Každý záznam historie
-  má `command`, `cwd` a `error`; příkaz rozebereš funkcí `parse()` z `lib/commands.ts`
-  a započítáš jen ty s `error === false`.
+- **Podle stavu souborového systému** — zajímá tě výsledek. Použij `getNode`, `isDir`,
+  `isFile` z `lib/fs.ts`.
+- **Podle historie příkazů** — zajímá tě, že student příkaz skutečně *použil*, i když po
+  něm nezůstane stopa (`pwd`, `ls`, `find`, `du`, `df`). K tomu slouží pomocné funkce
+  `ranOk`, `ranWithFlags` a `ranOnPath` přímo v `lib/tasks.ts`; započítávají se jen
+  příkazy, které proběhly bez chyby.
 
 Funkce musí být **čistá a rychlá** — volá se po každém stisku Enter. Jakmile jednou vrátí
-`true`, krok zůstane odškrtnutý natrvalo.
+`true`, cvičení zůstane splněné natrvalo.
 
 ## Přizpůsobení souborového systému
 
