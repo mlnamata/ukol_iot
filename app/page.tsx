@@ -27,6 +27,8 @@ type AppState = {
   /** Zadane prikazy pro sipky nahoru/dolu. */
   commands: string[]
   done: string[]
+  /** Id preskocenych kroku - vyrizene, ale bez bodu. */
+  skipped: string[]
   errors: number
   startedAt: number | null
   finishedAt: number | null
@@ -34,6 +36,7 @@ type AppState = {
 
 type Action =
   | { type: 'run'; input: string; now: number }
+  | { type: 'skip'; id: string; now: number }
   | { type: 'clear' }
   | { type: 'reset' }
   | { type: 'hydrate'; state: AppState }
@@ -54,6 +57,7 @@ function initialState(): AppState {
     history: [],
     commands: [],
     done: [],
+    skipped: [],
     errors: 0,
     startedAt: null,
     finishedAt: null,
@@ -68,6 +72,16 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, screen: [] }
     case 'reset':
       return initialState()
+    case 'skip': {
+      if (state.done.includes(action.id) || state.skipped.includes(action.id)) return state
+      const skipped = [...state.skipped, action.id]
+      const allDone = TASKS.every((t) => state.done.includes(t.id) || skipped.includes(t.id))
+      return {
+        ...state,
+        skipped,
+        finishedAt: allDone ? (state.finishedAt ?? action.now) : state.finishedAt,
+      }
+    }
     case 'run': {
       const input = action.input
       const promptLine: OutLine = {
@@ -85,16 +99,19 @@ function reducer(state: AppState, action: Action): AppState {
       const entry: HistoryEntry = { command: input, cwd: state.fs.cwd, error: result.error }
       const history = [...state.history, entry]
 
-      // Splneny krok se uz nikdy neodskrtne zpet.
+      // Splneny krok se uz nikdy neodskrtne zpet. Kdyz student splni krok,
+      // ktery driv preskocil, prestane byt preskoceny a body se mu pripisou.
       const done = [...state.done]
+      let skipped = state.skipped
       for (const task of TASKS) {
         if (!done.includes(task.id) && task.check(result.state.root, history)) {
           done.push(task.id)
+          skipped = skipped.filter((id) => id !== task.id)
         }
       }
 
       const screen = result.clear ? [] : [...state.screen, promptLine, ...result.lines]
-      const allDone = done.length === TASKS.length
+      const allDone = TASKS.every((t) => done.includes(t.id) || skipped.includes(t.id))
 
       return {
         ...state,
@@ -103,6 +120,7 @@ function reducer(state: AppState, action: Action): AppState {
         history,
         commands: [...state.commands, input],
         done,
+        skipped,
         errors: state.errors + (result.error ? 1 : 0),
         startedAt: state.startedAt ?? action.now,
         finishedAt: allDone ? (state.finishedAt ?? action.now) : state.finishedAt,
@@ -233,7 +251,7 @@ export default function Page() {
     [state.done],
   )
 
-  const allDone = state.done.length === TASKS.length
+  const allDone = TASKS.every((t) => state.done.includes(t.id) || state.skipped.includes(t.id))
 
   return (
     <main className="mx-auto flex min-h-screen max-w-[1400px] flex-col gap-4 p-4 lg:h-screen">
@@ -252,7 +270,9 @@ export default function Page() {
           <TaskPanel
             tasks={TASKS}
             done={state.done}
+            skipped={state.skipped}
             points={points}
+            onSkip={(id) => dispatch({ type: 'skip', id, now: Date.now() })}
             elapsed={elapsed}
             onReset={handleReset}
             onShowTree={() => setTreeOpen(true)}
@@ -265,7 +285,17 @@ export default function Page() {
       {allDone && !victoryClosed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
           <div className="fade-in w-full max-w-lg rounded-lg border border-accent/60 bg-panel p-6">
-            <h2 className="text-lg font-semibold text-accent">🎉 Hotovo! Všechny kroky splněny</h2>
+            <h2 className="text-lg font-semibold text-accent">
+              {state.skipped.length === 0
+                ? '🎉 Hotovo! Všechny kroky splněny'
+                : '🏁 Hotovo! Některé kroky jsi přeskočil'}
+            </h2>
+            {state.skipped.length > 0 && (
+              <p className="mt-2 text-xs leading-5 text-muted">
+                Přeskočené kroky se do bodů nepočítají. Zavři tohle okno a doplň je — body se ti
+                připíšou, jakmile je splníš.
+              </p>
+            )}
             <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
               <div className="rounded border border-line bg-bg p-3">
                 <dt className="text-xs text-muted">Body</dt>
@@ -285,6 +315,16 @@ export default function Page() {
                 <dt className="text-xs text-muted">Chyby</dt>
                 <dd className="tabular-nums text-danger">{state.errors}</dd>
               </div>
+              {state.skipped.length > 0 && (
+                <div className="col-span-2 rounded border border-line bg-bg p-3">
+                  <dt className="text-xs text-muted">Přeskočené kroky</dt>
+                  <dd className="tabular-nums">
+                    {state.skipped.length} ({TASKS.filter((t) => state.skipped.includes(t.id))
+                      .map((t) => t.title)
+                      .join(', ')})
+                  </dd>
+                </div>
+              )}
             </dl>
 
             {showSummary && (

@@ -59,6 +59,15 @@ rm: cannot remove 'savci': Is a directory
 bash: neco: command not found
 ```
 
+## Přeskočení kroku
+
+Když si student neví rady, může aktuální krok tlačítkem **Přeskočit krok (bez bodů)**
+označit jako vyřízený a pokračovat dál. Přeskočený krok se do bodů nezapočítá a v panelu
+je označený štítkem „přeskočeno, 0 b".
+
+Kontrola kroku ale běží dál — pokud ho student později přesto splní, přeskočení se zruší
+a body se mu připíšou.
+
 ## Klávesové zkratky v terminálu
 
 | Zkratka | Akce |
