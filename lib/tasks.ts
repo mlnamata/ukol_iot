@@ -55,14 +55,14 @@ export const TASKS: Task[] = [
     title: 'Novy vybeh',
     bullets: [
       'Jednim prikazem vytvor vnorene adresare ~/zoo/novy_vybeh/karantena.',
-      'Do ~/zoo/novy_vybeh vytvor soubor tapir.txt s obsahem "Tapirus terrestris, 2 kusy".',
+      'Do ~/zoo/novy_vybeh vytvor soubor tapir.txt.',
     ],
     points: 5,
-    hint: 'Vnorene adresare jednim prikazem → podivej se na prepinac -p u mkdir. Obsah do souboru dostanes presmerovanim vystupu echo pomoci >.',
+    hint: 'Vnorene adresare jednim prikazem → podivej se na prepinac -p u mkdir. Prazdny soubor vytvoris prikazem, ktery se souboru jen "dotkne".',
     check: (root) => {
       const karantena = getNode(root, `${ZOO}/novy_vybeh/karantena`)
       const tapir = getNode(root, `${ZOO}/novy_vybeh/tapir.txt`)
-      return isDir(karantena) && isFile(tapir) && tapir.content.includes('Tapirus')
+      return isDir(karantena) && isFile(tapir)
     },
   },
   {
