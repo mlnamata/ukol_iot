@@ -12,7 +12,9 @@ import { formatTree } from '@/lib/format'
 import { TASKS, TOTAL_POINTS } from '@/lib/tasks'
 
 const STORAGE_KEY = 'zoo-terminal-state'
-const STORAGE_VERSION = 1
+// Verzi je nutne zvednout pri kazde zmene tvaru AppState nebo definice cviceni,
+// jinak by se nacetl stary zaznam bez novych poli.
+const STORAGE_VERSION = 2
 
 // ---------------------------------------------------------------------------
 // Stav aplikace
@@ -158,7 +160,9 @@ function load(): AppState | null {
     }
     const candidate = (parsed as { state?: AppState }).state
     if (!candidate || !candidate.fs || candidate.fs.root?.type !== 'dir') return null
-    return candidate
+    // Chybejici pole doplnime z vychoziho stavu, aby starsi nebo poskozeny
+    // zaznam neshodil aplikaci na undefined.
+    return { ...initialState(), ...candidate }
   } catch {
     return null
   }
