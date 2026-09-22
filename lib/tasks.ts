@@ -91,7 +91,7 @@ export const TASKS: Task[] = [
     id: 'cv1',
     title: 'Kde jsme a co tu je',
     intro:
-      'Na začátku si ověříme, v jakém adresáři se nacházíme a jaké soubory tu máme, a můžeme si zobrazit i včetně skrytých.',
+      'Na začátku si ověříme, v jakém adresáři na naší základně se nacházíme a jaké soubory tu máme. Můžeme si je zobrazit i včetně skrytých.',
     commands: ['pwd', 'ls', 'ls -la'],
     explanation: [
       'pwd zobrazí absolutní cestu k aktuálnímu adresáři.',
@@ -106,19 +106,19 @@ export const TASKS: Task[] = [
   },
   {
     id: 'cv2',
-    title: 'Struktura ZOO jedním příkazem',
+    title: 'Struktura agentury jedním příkazem',
     intro:
-      'Nyní vytvoříme celou strukturu naší ZOO jedním příkazem pomocí přepínače -p. Vytvoříme pavilon šelem a pavilon ptáků.',
-    commands: ['mkdir -p zoo/pavilon_selem zoo/pavilon_ptaku', 'ls -R'],
+      'Nyní vytvoříme celou strukturu naší vesmírné agentury jedním příkazem pomocí přepínače -p. Vytvoříme složky pro misi na Mars a misi na Měsíc.',
+    commands: ['mkdir -p agentura/mise_mars agentura/mise_mesic', 'ls -R'],
     explanation: [
       'Mohli bychom udělat pouze mkdir a pak se tam přemístit pomocí cd a tvořit další složky. Lepší je přidat k mkdir parametr -p: ten vytvoří nejen složku, ale za lomítkem i další podsložku.',
-      'Parametr -p tedy vytvoří nadřazenou složku zoo i její podsložky najednou.',
+      'Parametr -p tedy vytvoří nadřazenou složku agentura i její podsložky najednou.',
       'ls -R pak ukáže celou vytvořenou strukturu včetně podadresářů.',
     ],
     points: 5,
     check: (root, h) =>
-      isDir(getNode(root, `${HOME}/zoo/pavilon_selem`)) &&
-      isDir(getNode(root, `${HOME}/zoo/pavilon_ptaku`)) &&
+      isDir(getNode(root, `${HOME}/agentura/mise_mars`)) &&
+      isDir(getNode(root, `${HOME}/agentura/mise_mesic`)) &&
       ranWithFlags(h, 'mkdir', ['p']) &&
       ranWithFlags(h, 'ls', ['R']),
   },
@@ -126,31 +126,31 @@ export const TASKS: Task[] = [
     id: 'cv3',
     title: 'Vytvoření, kopírování a přejmenování souboru',
     intro:
-      'Přesuneme se do pavilonu šelem, vytvoříme soubor se zvířetem, zkopírujeme ho k ptákům a přejmenujeme.',
+      'Přesuneme se do složky mise na Mars, vytvoříme soubor se seznamem astronautů, zkopírujeme ho k měsíční misi a přejmenujeme.',
     commands: [
-      'cd zoo/pavilon_selem',
-      'touch zvirata.txt',
-      'cp zvirata.txt ../pavilon_ptaku/',
-      'mv zvirata.txt lev.txt',
+      'cd agentura/mise_mars',
+      'touch astronauti.txt',
+      'cp astronauti.txt ../mise_mesic/',
+      'mv astronauti.txt velitel.txt',
       'ls -l',
     ],
     explanation: [
-      'cd nás přesune do složky, neboli k šelmám.',
-      'touch vytvoří prázdný soubor zvirata.txt.',
-      'cp zkopíruje soubor do druhé složky za použití relativní cesty .. (o úroveň výš). Šlo by to i přesnou cestou, ale to bychom si ji napřed museli zjistit přes pwd. Dvě tečky se dají řetězit lomítkem — kdyby byl pavilon ptáků o dvě úrovně výš, napsali bychom cp zvirata.txt ../../pavilon_ptaku/',
-      'mv přejmenuje původní soubor na lev.txt. Kdybychom za něj dali lomítko a cestu, soubor by místo přejmenování přesunul.',
+      'cd nás přesune do složky, v tomto případě k misi na Mars.',
+      'touch vytvoří prázdný soubor astronauti.txt.',
+      'cp zkopíruje soubor do druhé složky za použití relativní cesty .. (o úroveň výš). Dvě tečky se dají řetězit lomítkem — kdyby byla složka o dvě úrovně výš, napsali bychom cp astronauti.txt ../../mise_mesic/',
+      'mv přejmenuje původní soubor na velitel.txt. Kdybychom za něj dali lomítko a cestu, soubor by místo přejmenování přesunul.',
       'ls -l nakonec ukáže výsledek s podrobnostmi.',
     ],
     points: 5,
     check: (root) => {
-      const selem = getNode(root, `${HOME}/zoo/pavilon_selem`)
-      const ptaku = getNode(root, `${HOME}/zoo/pavilon_ptaku`)
+      const mars = getNode(root, `${HOME}/agentura/mise_mars`)
+      const mesic = getNode(root, `${HOME}/agentura/mise_mesic`)
       return (
-        isDir(selem) &&
-        isDir(ptaku) &&
-        isFile(selem.children['lev.txt']) &&
-        selem.children['zvirata.txt'] === undefined &&
-        isFile(ptaku.children['zvirata.txt'])
+        isDir(mars) &&
+        isDir(mesic) &&
+        isFile(mars.children['velitel.txt']) &&
+        mars.children['astronauti.txt'] === undefined &&
+        isFile(mesic.children['astronauti.txt'])
       )
     },
   },
@@ -158,23 +158,23 @@ export const TASKS: Task[] = [
     id: 'cv4',
     title: 'Hledání souboru',
     intro:
-      'Teď se přesuneme zpátky na začátek, o dvě úrovně výš, a ukážeme si hledání souboru příkazem find.',
-    commands: ['cd ../..', 'find zoo -name "lev.txt"'],
+      'Teď se přesuneme zpátky na začátek, o dvě úrovně výš, a ukážeme si hledání souboru s velitelem příkazem find.',
+    commands: ['cd ../..', 'find agentura -name "velitel.txt"'],
     explanation: [
       'cd ../.. nás vrátí o dvě úrovně výš, zpátky do domovského adresáře.',
-      'find prohledá složku zoo a najde přesnou cestu k souboru lev.txt.',
-      'Kdyby mělo find u sebe jen zoo bez -name, vypsalo by celý obsah složky.',
+      'find prohledá složku agentura a najde přesnou cestu k souboru velitel.txt.',
+      'Kdyby mělo find u sebe jen agentura bez -name, vypsalo by celý obsah složky.',
     ],
     points: 5,
     check: (_root, h) =>
-      ranOk(h, 'find', (e) => /-name\s+["']?lev\.txt["']?/.test(e.command) && ranOnPath(e, `${HOME}/zoo`)),
+      ranOk(h, 'find', (e) => /-name\s+["']?velitel\.txt["']?/.test(e.command) && ranOnPath(e, `${HOME}/agentura`)),
   },
   {
     id: 'cv5',
     title: 'Velikost složky a místo na disku',
     intro:
-      'Na závěr zkontrolujeme, kolik místa naše ZOO zabírá a kolik volného místa máme na disku.',
-    commands: ['du -sh zoo', 'df -h'],
+      'Na závěr zkontrolujeme, kolik dat naše agentura zabírá a kolik volného místa máme v datovém úložišti.',
+    commands: ['du -sh agentura', 'df -h'],
     explanation: [
       'du -sh zobrazí celkovou velikost složky. Přepínač -s dělá souhrn za celou složku, -h ji vypíše v čitelném formátu.',
       'df -h ukáže zaplnění celého disku.',
@@ -183,15 +183,15 @@ export const TASKS: Task[] = [
     check: (_root, h) =>
       ranOk(h, 'du', (e) => {
         const f = flagsOf(e)
-        return f.has('s') && f.has('h') && ranOnPath(e, `${HOME}/zoo`)
+        return f.has('s') && f.has('h') && ranOnPath(e, `${HOME}/agentura`)
       }) && ranWithFlags(h, 'df', ['h']),
   },
   {
     id: 'cv6',
     title: 'Mazání souboru a složky',
     intro:
-      'Pokud bychom chtěli odstranit soubor nebo adresář, použijeme rm. Pozor: koš v terminálu neexistuje.',
-    commands: ['rm zoo/pavilon_ptaku/zvirata.txt', 'rm -r zoo'],
+      'Pokud bychom chtěli stará data smazat, použijeme rm. Pozor: koš v terminálu neexistuje.',
+    commands: ['rm agentura/mise_mesic/astronauti.txt', 'rm -r agentura'],
     explanation: [
       'rm smaže soubor. Uvádíme buď jen název, pokud jsme ve složce, kde soubor je, nebo celou cestu k němu.',
       'Na celou složku rm samo nestačí — přidáme parametr -r a název složky, čímž se smaže složka i všechno v ní.',
@@ -200,7 +200,31 @@ export const TASKS: Task[] = [
     check: (root, h) =>
       ranOk(h, 'rm', (e) => !flagsOf(e).has('r')) &&
       ranWithFlags(h, 'rm', ['r']) &&
-      findByName(root, 'zoo') === null,
+      findByName(root, 'agentura') === null,
+  },
+]
+
+export type TaskGroup = {
+  id: string
+  title: string
+  tasks: Task[]
+}
+
+export const TASK_GROUPS: TaskGroup[] = [
+  {
+    id: 'g1',
+    title: '1. Základy a adresářová struktura',
+    tasks: [TASKS[0], TASKS[1]],
+  },
+  {
+    id: 'g2',
+    title: '2. Práce se soubory a vyhledávání',
+    tasks: [TASKS[2], TASKS[3]],
+  },
+  {
+    id: 'g3',
+    title: '3. Správa disku a úklid',
+    tasks: [TASKS[4], TASKS[5]],
   },
 ]
 

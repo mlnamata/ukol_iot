@@ -582,7 +582,7 @@ export function completions(state: FsState, input: string): { prefix: string; ma
 
 /** Retezec promptu pro aktualni adresar. */
 export function promptFor(state: FsState): string {
-  return `student@zoo:${prettyPath(state.cwd)}$`
+  return `student@vesmir:${prettyPath(state.cwd)}$`
 }
 
 export { baseName, diskUsage }

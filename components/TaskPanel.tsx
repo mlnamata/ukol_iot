@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { Task } from '@/lib/tasks'
-import { TOTAL_POINTS } from '@/lib/tasks'
+import { TOTAL_POINTS, TASK_GROUPS } from '@/lib/tasks'
 
 type Props = {
   tasks: Task[]
@@ -53,11 +53,10 @@ export default function TaskPanel({
     <div className="flex h-full flex-col gap-4 overflow-y-auto rounded-lg border border-line bg-panel p-4">
       <header>
         <h1 className="text-base font-semibold text-accent">
-          Cvičení: souborový systém Linuxu
+          Mise: Vesmírná agentura (Linux)
         </h1>
         <p className="mt-1 text-xs leading-5 text-muted">
-          U každého cvičení jsou uvedené příkazy — přepiš je do terminálu vlevo. Splněné cvičení se
-          odškrtne samo. Tlačítkem „Vysvětlení" si zobrazíš, co jednotlivé příkazy dělají.
+          Splněné cvičení se odškrtne samo. Tlačítkem „Nápověda“ si zobrazíš správné příkazy a vysvětlení, co dělají.
         </p>
       </header>
 
@@ -82,96 +81,105 @@ export default function TaskPanel({
       </section>
 
       {/* Karty kroku */}
-      <ol className="flex flex-col gap-3">
-        {tasks.map((task, i) => {
-          const isDone = done.includes(task.id)
-          const isSkipped = !isDone && skipped.includes(task.id)
-          const isCurrent = !isDone && !isSkipped && task.id === current.id
-          return (
-            <li
-              key={task.id}
-              className={[
-                'rounded-md border p-3 transition-colors',
-                isDone
-                  ? 'border-accent/50 bg-accent/5'
-                  : isSkipped
-                    ? 'border-line bg-bg opacity-60'
-                    : isCurrent
-                      ? 'border-line bg-bg'
-                      : 'border-line bg-bg opacity-70',
-              ].join(' ')}
-            >
-              <div className="flex items-start gap-2">
-                <span
-                  className={[
-                    'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs',
-                    isDone
-                      ? 'pop border-accent bg-accent text-bg'
-                      : isSkipped
-                        ? 'border-muted text-muted'
-                        : 'border-line text-muted',
-                  ].join(' ')}
-                  aria-hidden
-                >
-                  {isDone ? '✓' : isSkipped ? '↷' : i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <h2
+      <div className="flex flex-col gap-6">
+        {TASK_GROUPS.map((group) => (
+          <section key={group.id} className="flex flex-col gap-3">
+            <h2 className="text-sm font-semibold text-fg">{group.title}</h2>
+            <ol className="flex flex-col gap-3">
+              {group.tasks.map((task) => {
+                const globalIndex = tasks.findIndex((t) => t.id === task.id)
+                const isDone = done.includes(task.id)
+                const isSkipped = !isDone && skipped.includes(task.id)
+                const isCurrent = !isDone && !isSkipped && task.id === current.id
+                return (
+                  <li
+                    key={task.id}
                     className={[
-                      'text-sm font-semibold',
-                      isDone ? 'text-accent' : 'text-fg',
+                      'rounded-md border p-3 transition-colors',
+                      isDone
+                        ? 'border-accent/50 bg-accent/5'
+                        : isSkipped
+                          ? 'border-line bg-bg opacity-60'
+                          : isCurrent
+                            ? 'border-line bg-bg'
+                            : 'border-line bg-bg opacity-70',
                     ].join(' ')}
                   >
-                    Cvičení {i + 1} — {task.title}{' '}
-                    <span className="font-normal text-muted">({task.points} b)</span>
-                    {isSkipped && (
-                      <span className="ml-2 rounded border border-line px-1.5 py-0.5 text-[10px] font-normal text-muted">
-                        přeskočeno, 0 b
-                      </span>
-                    )}
-                  </h2>
-                  <p className="mt-1 text-xs leading-5 text-muted">{task.intro}</p>
-
-                  {/* Prikazy k prepsani do terminalu */}
-                  <div className="mt-2 rounded border border-line bg-bg p-2">
-                    {task.commands.map((cmd) => (
-                      <div key={cmd} className="flex gap-2 text-xs leading-6">
-                        <span className="shrink-0 select-none text-accent">$</span>
-                        <code className="min-w-0 break-all text-fg">{cmd}</code>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setOpenHint(openHint === task.id ? null : task.id)}
-                      className="rounded border border-line px-2 py-1 text-[11px] text-muted hover:border-accent hover:text-accent"
-                    >
-                      {openHint === task.id ? 'Skrýt vysvětlení' : 'Vysvětlení'}
-                    </button>
-                    {isCurrent && (
-                      <button
-                        onClick={() => confirmSkip(task)}
-                        className="rounded border border-line px-2 py-1 text-[11px] text-muted hover:border-danger hover:text-danger"
+                    <div className="flex items-start gap-2">
+                      <span
+                        className={[
+                          'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs',
+                          isDone
+                            ? 'pop border-accent bg-accent text-bg'
+                            : isSkipped
+                              ? 'border-muted text-muted'
+                              : 'border-line text-muted',
+                        ].join(' ')}
+                        aria-hidden
                       >
-                        Přeskočit (bez bodů)
-                      </button>
-                    )}
-                  </div>
+                        {isDone ? '✓' : isSkipped ? '↷' : globalIndex + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <h3
+                          className={[
+                            'text-sm font-semibold',
+                            isDone ? 'text-accent' : 'text-fg',
+                          ].join(' ')}
+                        >
+                          Podúkol {globalIndex + 1} — {task.title}{' '}
+                          <span className="font-normal text-muted">({task.points} b)</span>
+                          {isSkipped && (
+                            <span className="ml-2 rounded border border-line px-1.5 py-0.5 text-[10px] font-normal text-muted">
+                              přeskočeno, 0 b
+                            </span>
+                          )}
+                        </h3>
+                        <p className="mt-1 text-xs leading-5 text-muted">{task.intro}</p>
 
-                  {openHint === task.id && (
-                    <ul className="fade-in mt-2 list-disc space-y-1 rounded border border-line bg-panel p-2 pl-6 text-[11px] leading-5 text-fg">
-                      {task.explanation.map((e) => (
-                        <li key={e}>{e}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-            </li>
-          )
-        })}
-      </ol>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <button
+                            onClick={() => setOpenHint(openHint === task.id ? null : task.id)}
+                            className="rounded border border-line px-2 py-1 text-[11px] text-muted hover:border-accent hover:text-accent"
+                          >
+                            {openHint === task.id ? 'Skrýt nápovědu' : 'Nápověda'}
+                          </button>
+                          {isCurrent && (
+                            <button
+                              onClick={() => confirmSkip(task)}
+                              className="rounded border border-line px-2 py-1 text-[11px] text-muted hover:border-danger hover:text-danger"
+                            >
+                              Přeskočit (bez bodů)
+                            </button>
+                          )}
+                        </div>
+
+                        {openHint === task.id && (
+                          <div className="fade-in mt-2 space-y-2">
+                            {/* Prikazy k prepsani do terminalu */}
+                            <div className="rounded border border-line bg-bg p-2">
+                              {task.commands.map((cmd) => (
+                                <div key={cmd} className="flex gap-2 text-xs leading-6">
+                                  <span className="shrink-0 select-none text-accent">$</span>
+                                  <code className="min-w-0 break-all text-fg">{cmd}</code>
+                                </div>
+                              ))}
+                            </div>
+                            <ul className="list-disc space-y-1 rounded border border-line bg-panel p-2 pl-6 text-[11px] leading-5 text-fg">
+                              {task.explanation.map((e) => (
+                                <li key={e}>{e}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                )
+              })}
+            </ol>
+          </section>
+        ))}
+      </div>
 
       {/* Ovladaci tlacitka */}
       <div className="mt-auto flex flex-wrap gap-2 pt-2">

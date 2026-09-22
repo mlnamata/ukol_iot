@@ -14,7 +14,7 @@ import { TASKS, TOTAL_POINTS } from '@/lib/tasks'
 const STORAGE_KEY = 'zoo-terminal-state'
 // Verzi je nutne zvednout pri kazde zmene tvaru AppState nebo definice cviceni,
 // jinak by se nacetl stary zaznam bez novych poli.
-const STORAGE_VERSION = 2
+const STORAGE_VERSION = 3
 
 // ---------------------------------------------------------------------------
 // Stav aplikace
@@ -45,7 +45,7 @@ type Action =
 
 function welcome(): OutLine[] {
   const text = [
-    'ZOO Terminal v1.0 - simulator Linuxoveho terminalu',
+    'Vesmirna Agentura Terminal v1.0 - simulator Linuxoveho terminalu',
     'Napis "help" pro seznam prikazu, "tree" pro prehled adresaru.',
     '',
   ]

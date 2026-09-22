@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'ZOO Terminál – simulátor Linuxu',
-  description: 'Výukový simulátor Linuxového terminálu na téma ZOO.',
+  title: 'Vesmírná agentura Terminál – simulátor Linuxu',
+  description: 'Výukový simulátor Linuxového terminálu na téma vesmírná agentura.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

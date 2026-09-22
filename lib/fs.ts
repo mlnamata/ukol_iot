@@ -50,11 +50,11 @@ function dirOf(name: string, nodes: FsNode[]): FsDir {
 // ---------------------------------------------------------------------------
 
 export function initialRoot(): FsDir {
-  // Domovsky adresar je zamerne skoro prazdny - strukturu ZOO si student
+  // Domovsky adresar je zamerne skoro prazdny - strukturu vesmírné agentury si student
   // postavi sam v prubehu cviceni.
   const student = dirOf('student', [
-    dirOf('dokumenty', [file('smlouva.conf', 'typ=dodavka; krmivo=seno')]),
-    file('poznamky.txt', 'Nezapomenout objednat krmivo'),
+    dirOf('dokumenty', [file('smlouva.conf', 'typ=dodavka; rakety=falcon')]),
+    file('poznamky.txt', 'Nezapomenout objednat palivo'),
     file('.bashrc', '# nastaveni shellu'),
   ])
 
