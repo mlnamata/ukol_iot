@@ -99,10 +99,7 @@ export const TASKS: Task[] = [
       'ls s parametrem -la vypíše všechny soubory a složky včetně skrytých (začínajících tečkou) s podrobnými informacemi.',
     ],
     points: 5,
-    check: (_root, h) =>
-      ranOk(h, 'pwd') &&
-      ranOk(h, 'ls', (e) => flagsOf(e).size === 0) &&
-      ranWithFlags(h, 'ls', ['l', 'a']),
+    check: (_root, h) => ranOk(h, 'pwd') && ranOk(h, 'ls'),
   },
   {
     id: 'cv2',
@@ -118,9 +115,7 @@ export const TASKS: Task[] = [
     points: 5,
     check: (root, h) =>
       isDir(getNode(root, `${HOME}/agentura/mise_mars`)) &&
-      isDir(getNode(root, `${HOME}/agentura/mise_mesic`)) &&
-      ranWithFlags(h, 'mkdir', ['p']) &&
-      ranWithFlags(h, 'ls', ['R']),
+      isDir(getNode(root, `${HOME}/agentura/mise_mesic`)),
   },
   {
     id: 'cv3',
@@ -166,8 +161,7 @@ export const TASKS: Task[] = [
       'Kdyby mělo find u sebe jen agentura bez -name, vypsalo by celý obsah složky.',
     ],
     points: 5,
-    check: (_root, h) =>
-      ranOk(h, 'find', (e) => /-name\s+["']?velitel\.txt["']?/.test(e.command) && ranOnPath(e, `${HOME}/agentura`)),
+    check: (_root, h) => ranOk(h, 'find'),
   },
   {
     id: 'cv5',
@@ -180,11 +174,7 @@ export const TASKS: Task[] = [
       'df -h ukáže zaplnění celého disku.',
     ],
     points: 5,
-    check: (_root, h) =>
-      ranOk(h, 'du', (e) => {
-        const f = flagsOf(e)
-        return f.has('s') && f.has('h') && ranOnPath(e, `${HOME}/agentura`)
-      }) && ranWithFlags(h, 'df', ['h']),
+    check: (_root, h) => ranOk(h, 'du') && ranOk(h, 'df'),
   },
   {
     id: 'cv6',
@@ -197,10 +187,7 @@ export const TASKS: Task[] = [
       'Na celou složku rm samo nestačí — přidáme parametr -r a název složky, čímž se smaže složka i všechno v ní.',
     ],
     points: 5,
-    check: (root, h) =>
-      ranOk(h, 'rm', (e) => !flagsOf(e).has('r')) &&
-      ranWithFlags(h, 'rm', ['r']) &&
-      findByName(root, 'agentura') === null,
+    check: (root) => findByName(root, 'agentura') === null,
   },
 ]
 
